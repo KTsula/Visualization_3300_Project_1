@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <title>Group Project</title>
+    <style>
+    .gridlines line {
+        stroke: #bbb;
+    }
+    
+    .gridlines .domain {
+        stroke: none;
+    }
+    </style>
+</head>
+<body>
+    <svg id="tempplot" width="1300" height="600"></svg>
+    <script>
+        const svg = d3.select('svg#tempplot');
+        const width = svg.attr('width');
+        const height = svg.attr('height');
+        const margins = {top: 10, right: 10, bottom: 50, left: 50};
+        const chartWidth = width - margins.left - margins.right;
+        const chartHeight = height - margins.top - margins.bottom;
+        let chartArea = svg.append('g')
+                       .attr('transform',`translate(${margins.left},${margins.top})`);
+
+        d3.csv('GLB.Ts+dSST.csv')
+        .then( (data) => {
+
+            // Months list (will simplify our life later)
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            // Function to check if any value in the row is '***' (indicating missing data)
+            function isValidRow(row) {
+                return !months.some(month => row[month] === '***');
+            }
+
+            let filteredData = data
+                .filter(isValidRow)  // Remove rows with '***'
+                .map(d => ({
+                    year: +d.Year,
+                    temperatures: months.map(month => d[month])  // Array of temperatures for each row
+                }));
+
+            console.log("Data: ", filteredData);
+
+            // Grab max and min temperatures for scales
+            const minTemp = d3.min(filteredData, d => d3.min(d.temperatures));
+            const maxTemp = d3.max(filteredData, d => d3.max(d.temperatures));
+
+            // Set up scales
+            let colorScale = d3.scaleLinear().domain([minTemp, maxTemp])
+                                   .range([d3.rgb("#87CEEB"), d3.rgb("#DC143C")])
+                                   .interpolate(d3.interpolateHcl);
+
+            const yearExtent = d3.extent(data, d => d.Year );
+            let xScale = d3.scaleLinear()
+            .domain(yearExtent)
+            .range([0, chartWidth]);
+
+            let yScale = d3.scalePoint()
+                .domain(months)
+                .range([chartHeight, 0])  // Spread the months evenly
+                .padding(0.5);
+
+            // Create X axis
+            let bottomAxis = d3.axisBottom(xScale) // Format to show as integer
+            svg.append('g')
+                .attr('transform', `translate(${margins.left},${chartHeight+margins.top+10})`)
+                .call(bottomAxis);
+
+            // Create Y axis
+            let leftAxis = d3.axisLeft(yScale);
+            svg.append('g')
+                .attr('class', 'y axis')
+                .attr('transform', `translate(${margins.left-10}, ${margins.top})`)
+                .call(leftAxis);
+
+            // Create Gridlines (not sure if it's visually nice or needed in this case)
+            let leftGridlines = d3.axisLeft(yScale)
+                        .tickSize(-chartWidth-10)
+                        .tickFormat('');
+            svg.append('g')
+                .attr('class', 'y gridlines')
+                .attr('transform', `translate(${margins.left-10}, ${margins.top})`)
+                .call(leftGridlines);
+            
+            let bottomGridlines = d3.axisBottom(xScale)
+                        .tickSize(-chartHeight-10)
+                        .tickFormat('');
+            svg.append('g')
+                .attr('class', 'x gridlines')
+                .attr('transform', `translate(${margins.left}, ${chartHeight+margins.top+10})`)
+                .call(bottomGridlines);
+        });
+    </script>
+</body>
+</html>
