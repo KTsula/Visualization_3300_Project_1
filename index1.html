@@ -5,9 +5,9 @@
 </head>
 
 <body>
-  <h3>Alexa Bunda, abt53, Keti Sulamanidze, Sash Bykhovski, Nicole Gerber</h3>
+  <h3>Alexa Bunda, abt53, Keti Sulamanidze, Sasha Bykhovski sb887, Nicole Gerber</h3>
 
-  <p id="scatterplot"> CO2 and Surface Temperature Scatterplot:
+  <p>CO2 and Surface Temperature Scatterplot:</p>
     <svg id="scatterplot" height="500" width="500" style="margin-top:50px">
     </svg>
     <style>
@@ -20,6 +20,9 @@
       }
     </style>
     <script>
+      d3.json("chip_dataset.json")
+            .then(function(data) {
+      
       const svg = d3.select('svg#scatterplot');
       const width = svg.attr('width');
       const height = svg.attr('height');
@@ -27,9 +30,18 @@
       const chartWidth = width - margins.left - margins.right;
       const chartHeight = height - margins.top - margins.bottom;
 
+      // put in random values before cleaning the data
+
+      const xScale = d3.scaleLinear()
+      .domain([0, 40])
+      .range([0, chartWidth]);  
+
+      const yScale = d3.scaleLinear()
+      .domain([0, 50])
+      .range([chartHeight, 0]); 
 
 
-      let leftAxis = d3.axisLeft(yScale);
+    let leftAxis = d3.axisLeft(yScale);
       svg.append('g')
         .attr('class', 'y axis')
         .attr('transform', `translate(${margins.left - 10},${margins.top})`)
@@ -64,6 +76,9 @@
 
       let chartArea = svg.append('g')
         .attr('transform', `translate(${margins.left},${margins.top})`);
+      
+    });
+  
     </script>
   </p>
 
