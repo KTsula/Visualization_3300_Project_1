@@ -8,7 +8,7 @@
   <h3>Alexa Bunda, abt53, Keti Sulamanidze, Sasha Bykhovski sb887, Nicole Gerber</h3>
 
   <p>CO2 and Surface Temperature Scatterplot:</p>
-  <svg id="scatterplot" height="500" width="500" style="margin-top:50px">
+  <svg id="scatterplot" height="500" width="1000" style="margin-top:50px">
   </svg>
 
   <script>
@@ -24,7 +24,7 @@
     let chartArea = svg.append("g").attr("id", "points")
       .attr("transform", `translate(${margins.left},${margins.top})`);
 
-    Promise.all([d3.csv("co2_emissions_kt_by_country.csv", d3.autoType), d3.csv("globaltemp.csv", d3.autoType)]).then(([co2data, tempdata]) => {
+    Promise.all([d3.csv("USco2.csv", d3.autoType), d3.csv("UStemp.csv", d3.autoType)]).then(([co2data, tempdata]) => {
 
       console.log(co2data);
       console.log(tempdata);
@@ -60,8 +60,7 @@
 
 
       const co2Extent = d3.extent(mergedData, d => d.Co2);
-      console.log(co2Extent);
-      const co2Scale = d3.scaleLinear().domain(co2Extent).range([chartHeight, 0])
+      const co2Scale = d3.scaleLog().domain(co2Extent).range([chartHeight, 0])
       let leftAxis = d3.axisLeft(co2Scale)
       let leftGridlines = d3.axisLeft(co2Scale)
         .tickSize(-chartWidth - 10)
@@ -75,16 +74,25 @@
         .attr("transform", `translate(${margins.left - 10},${margins.top})`)
         .call(leftGridlines);
 
+
       const tempExtent = d3.extent(mergedData, d => d.TempChange)
       const tempScale = d3.scaleLinear().domain(tempExtent).range([0, chartWidth]);
-      let bottomAxis = d3.axisBottom(tempScale);
-      let bottomGridlines = d3.axisBottom(tempScale)
+
+      const yearScale = d3.scaleLinear().domain([1970, 2021]).range([0, chartWidth]);
+      let years = d3.range(1970, 2022, 2);
+      let bottomAxis = d3.axisBottom(yearScale)
+        .tickValues(years)
+        .tickSize(-chartHeight - 10)
+        .tickFormat(d3.format("d"));
+
+      let bottomGridlines = d3.axisBottom(yearScale)
         .tickSize(-chartHeight - 10)
         .tickFormat("");
       annotations.append("g")
         .attr("class", "x axis")
         .attr("transform", `translate(${margins.left},${chartHeight + margins.top})`)
         .call(bottomAxis);
+
 
       annotations.append("g")
         .attr("class", "grid x")
