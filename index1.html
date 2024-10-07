@@ -10,15 +10,7 @@
   <p id="scatterplot"> CO2 and Surface Temperature Scatterplot:
     <svg id="scatterplot" height="500" width="500" style="margin-top:50px">
     </svg>
-    <style>
-      .gridlines line {
-        stroke: #bbb;
-      }
 
-      .gridlines .domain {
-        stroke: none;
-      }
-    </style>
     <script>
       const svg = d3.select('svg#scatterplot');
       const width = svg.attr('width');
@@ -27,43 +19,64 @@
       const chartWidth = width - margins.left - margins.right;
       const chartHeight = height - margins.top - margins.bottom;
 
+      let annotations = svg.append("g").attr("id", "annotations");
+      let chartArea = svg.append("g").attr("id", "points")
+        .attr("transform", `translate(${margins.left},${margins.top})`);
+
+      Promise.all([d3.csv("co2_emissions_kt_by_country.csv", d3.autoType), d3.csv("globaltemp.csv", d3.autoType)]).then(([co2data, tempdata]) => {
+
+        console.log(co2data);
+        console.log(tempdata);
+
+        const co2Extent = d3.extent(co2data, d => d['value']);
+        const co2Scale = d3.scaleLinear().domain(co2Extent).range([chartHeight, 0])
+        let leftAxis = d3.axisLeft(co2Scale)
+        let leftGridlines = d3.axisLeft(co2Scale)
+          .tickSize(-chartWidth - 10)
+          .tickFormat("")
+        annotations.append("g")
+          .attr("class", "y axis")
+          .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+          .call(leftAxis)
+
+        const tempExtent = d3.extent(tempdata, d => ['2021'])
+
+      })
 
 
-      let leftAxis = d3.axisLeft(yScale);
-      svg.append('g')
-        .attr('class', 'y axis')
-        .attr('transform', `translate(${margins.left - 10},${margins.top})`)
-        .call(leftAxis);
 
-      let bottomAxis = d3.axisBottom(xScale);
-      svg.append('g')
-        .attr('class', 'x axis')
-        .attr('transform', `translate(${margins.left},${margins.top + chartHeight + 10})`)
-        .call(bottomAxis);
+      // let leftAxis = d3.axisLeft(yScale);
+      // svg.append('g')
+      //   .attr('class', 'y axis')
+      //   .attr('transform', `translate(${margins.left - 10},${margins.top})`)
+      //   .call(leftAxis);
 
-
-
-
-      let leftGridlines = d3.axisLeft(yScale)
-        .tickFormat("")
-        .tickSize(-chartWidth - 10);
-      svg.append('g')
-        .attr('class', 'y gridlines')
-        .attr('transform', `translate(${margins.left - 10},${margins.top})`)
-        .call(leftGridlines);
-
-      let bottomGridlines = d3.axisBottom(xScale)
-        .tickFormat("")
-        .tickSize(-chartHeight - 10)
-        .ticks(6);
-      svg.append('g')
-        .attr('class', 'x gridlines')
-        .attr('transform', `translate(${margins.left},${margins.top + chartHeight + 10})`)
-        .call(bottomGridlines);
+      // let bottomAxis = d3.axisBottom(xScale);
+      // svg.append('g')
+      //   .attr('class', 'x axis')
+      //   .attr('transform', `translate(${margins.left},${margins.top + chartHeight + 10})`)
+      //   .call(bottomAxis);
 
 
-      let chartArea = svg.append('g')
-        .attr('transform', `translate(${margins.left},${margins.top})`);
+
+
+      // let leftGridlines = d3.axisLeft(yScale)
+      //   .tickFormat("")
+      //   .tickSize(-chartWidth - 10);
+      // svg.append('g')
+      //   .attr('class', 'y gridlines')
+      //   .attr('transform', `translate(${margins.left - 10},${margins.top})`)
+      //   .call(leftGridlines);
+
+      // let bottomGridlines = d3.axisBottom(xScale)
+      //   .tickFormat("")
+      //   .tickSize(-chartHeight - 10)
+      //   .ticks(6);
+      // svg.append('g')
+      //   .attr('class', 'x gridlines')
+      //   .attr('transform', `translate(${margins.left},${margins.top + chartHeight + 10})`)
+      //   .call(bottomGridlines);
+
     </script>
   </p>
 
