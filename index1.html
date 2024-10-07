@@ -15,9 +15,14 @@
 </head>
 
 <body>
-  <h3>Alexa Bunda, abt53, Keti Sulamanidze, Sasha Bykhovski sb887, Nicole Gerber</h3>
+  <h3 style="font-family: Verdana"> CO2 vs Surface Temperature Change in the United States, 1970-2021</h3>
 
-  <p>CO2 and Surface Temperature Scatterplot:</p>
+  <p style="font-family: Verdana; font-size: 13">This graph shows the correlation between carbon emissions and change in
+    surface
+    temperature from the previous year
+    in the United States. It is predicted that as the amount of carbon emissions increases, the surface temperature
+    increases as well.
+  </p>
   <svg id="scatterplot" height="500" width="1000" style="margin-top:50px">
   </svg>
 
@@ -26,7 +31,7 @@
     const svg = d3.select('svg#scatterplot');
     const width = svg.attr('width');
     const height = svg.attr('height');
-    const margins = { top: 10, right: 10, bottom: 50, left: 50 };
+    const margins = { top: 10, right: 20, bottom: 50, left: 70 };
     const chartWidth = width - margins.left - margins.right;
     const chartHeight = height - margins.top - margins.bottom;
 
@@ -86,6 +91,17 @@
         .attr("transform", `translate(${margins.left - 10},${margins.top})`)
         .call(leftGridlines);
 
+      //Add label to y axis
+      annotations.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("transform", `rotate(-90)`)
+        .attr("x", -chartHeight / 2 - margins.top)
+        .attr("y", margins.left - 50)
+        .text("CO2 Emissions (kt)")
+        .style("font-family", "Verdana")
+        .style("font-size", "12")
+
 
       // const tempExtent = d3.extent(mergedData, d => d.TempChange)
       // const tempScale = d3.scaleLinear().domain(tempExtent).range([0, chartWidth]);
@@ -112,6 +128,16 @@
         .attr("class", "x gridlines")
         .attr("transform", `translate(${margins.left},${chartHeight + margins.top})`)
         .call(bottomGridlines);
+
+      // add label to x axis
+      annotations.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", chartWidth / 2 + margins.left)
+        .attr("y", chartHeight + margins.top + 30)
+        .text("Year")
+        .style("font-family", "Verdana")
+        .style("font-size", "12")
 
     })
 
