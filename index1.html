@@ -12,39 +12,66 @@
   </svg>
 
   <script>
-    d3.json("chip_dataset.json")
-      .then(function (data) {
 
-        const svg = d3.select('svg#scatterplot');
-        const width = svg.attr('width');
-        const height = svg.attr('height');
-        const margins = { top: 10, right: 10, bottom: 50, left: 50 };
-        const chartWidth = width - margins.left - margins.right;
-        const chartHeight = height - margins.top - margins.bottom;
+    const svg = d3.select('svg#scatterplot');
+    const width = svg.attr('width');
+    const height = svg.attr('height');
+    const margins = { top: 10, right: 10, bottom: 50, left: 50 };
+    const chartWidth = width - margins.left - margins.right;
+    const chartHeight = height - margins.top - margins.bottom;
 
-        let annotations = svg.append("g").attr("id", "annotations");
-        let chartArea = svg.append("g").attr("id", "points")
-          .attr("transform", `translate(${margins.left},${margins.top})`);
+    let annotations = svg.append("g").attr("id", "annotations");
+    let chartArea = svg.append("g").attr("id", "points")
+      .attr("transform", `translate(${margins.left},${margins.top})`);
 
-        Promise.all([d3.csv("co2_emissions_kt_by_country.csv", d3.autoType), d3.csv("globaltemp.csv", d3.autoType)]).then(([co2data, tempdata]) => {
+    Promise.all([d3.csv("co2_emissions_kt_by_country.csv", d3.autoType), d3.csv("globaltemp.csv", d3.autoType)]).then(([co2data, tempdata]) => {
 
-          console.log(co2data);
-          console.log(tempdata);
+      console.log(co2data);
+      console.log(tempdata);
 
-          const co2Extent = d3.extent(co2data, d => d['value']);
-          const co2Scale = d3.scaleLinear().domain(co2Extent).range([chartHeight, 0])
-          let leftAxis = d3.axisLeft(co2Scale)
-          let leftGridlines = d3.axisLeft(co2Scale)
-            .tickSize(-chartWidth - 10)
-            .tickFormat("")
-          annotations.append("g")
-            .attr("class", "y axis")
-            .attr("transform", `translate(${margins.left - 10},${margins.top})`)
-            .call(leftAxis)
+      // need to reshape tempData
+      const newTempData = [];
+      tempdata.forEach(row => {
+        const country = row["Country Name"];
+        // loop through the years and create new data set where year is a column
+        for (let year = 1970; year <= 2021; year++) {
+          if (row[year] !== "") {
+            newTempData.push({
+              Country: country,
+              Year: year,
+              "Temp Change": row[year]
+            });
+          }
+        }
+      });
 
-          const tempExtent = d3.extent(tempdata, d => ['2021'])
+      const mergedData = co2data.map(co2Row => {
+        const tempRow = newTempData.find(temp => temp.Country.toLowerCase().includes(co2Row.country_name.toLowerCase()) && temp.Year === co2Row.year);
 
-        })
+        return {
+          Country: co2Row.country_name,
+          Year: co2Row.year,
+          Co2: co2Row.value,
+          TempChange: tempRow ? tempRow["Temp Change"] : null
+        };
+      }).filter(d => d.TempChange !== null);
+
+      console.log(mergedData);
+
+      const co2Extent = d3.extent(mergedData, d => d.Co2);
+      const co2Scale = d3.scaleLinear().domain(co2Extent).range([chartHeight, 0])
+      let leftAxis = d3.axisLeft(co2Scale)
+      let leftGridlines = d3.axisLeft(co2Scale)
+        .tickSize(-chartWidth - 10)
+        .tickFormat("")
+      annotations.append("g")
+        .attr("class", "y axis")
+        .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+        .call(leftAxis)
+
+      const tempExtent = d3.extent(mergedData, d => d.TempChange)
+
+    })
 
 
 
