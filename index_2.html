@@ -42,7 +42,7 @@
                 .filter(isValidRow)  // Remove rows with '***'
                 .map(d => ({
                     year: +d.Year,
-                    temperatures: months.map(month => d[month])  // Array of temperatures for each row
+                    temperatures: months.map(month => parseFloat(d[month]))  // Array of temperatures for each row (I used )
                 }));
 
             console.log("Data: ", filteredData);
@@ -50,6 +50,8 @@
             // Grab max and min temperatures for scales
             const minTemp = d3.min(filteredData, d => d3.min(d.temperatures));
             const maxTemp = d3.max(filteredData, d => d3.max(d.temperatures));
+            console.log("Min temp: ", minTemp);
+            console.log("Max temp: ", maxTemp);
 
             // Set up scales
             let colorScale = d3.scaleLinear().domain([minTemp, maxTemp])
