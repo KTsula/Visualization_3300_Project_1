@@ -16,12 +16,15 @@
     </style>
 </head>
 <body>
-    <svg id="tempplot" width="1300" height="600"></svg>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <h3 id="surface_temp_h3" style="font-family: Verdana;">Global Surface Temperature Change, 1880-2021, Visualisation</h3>
+        <svg id="tempplot" width="1300" height="700"></svg>
+    </div>
     <script>
         const svg = d3.select('svg#tempplot');
         const width = svg.attr('width');
         const height = svg.attr('height');
-        const margins = {top: 10, right: 10, bottom: 65, left: 50};
+        const margins = {top: 10, right: 10, bottom: 165, left: 50};
         const chartWidth = width - margins.left - margins.right;
         const chartHeight = height - margins.top - margins.bottom;
         let chartArea = svg.append('g')
@@ -59,6 +62,7 @@
                                    .interpolate(d3.interpolateHcl);
 
             const yearExtent = d3.extent(data, d => d.Year );
+            
             let xScale = d3.scaleLinear()
             .domain(yearExtent)
             .range([0, chartWidth]);
@@ -69,7 +73,8 @@
                 .padding(0.5);
 
             // Create X axis
-            let bottomAxis = d3.axisBottom(xScale) // Format to show as integer
+            let bottomAxis = d3.axisBottom(xScale)
+                            .tickFormat(d => d.toString()) // Format to show as integer
             svg.append('g')
                 .attr('transform', `translate(${margins.left},${chartHeight+margins.top+10})`)
                 .call(bottomAxis);
@@ -117,7 +122,7 @@
             const legendHeight = 10;
 
             const legendSvg = svg.append('g')
-                .attr('transform', `translate(${(width - legendWidth) / 2}, ${height - margins.bottom + 30})`);
+                .attr('transform', `translate(${width - legendWidth - margins.right}, ${height - margins.bottom + 130})`);
 
             const gradient = legendSvg.append('defs')
                 .append('linearGradient')
@@ -153,6 +158,15 @@
                 .attr('text-anchor', 'end')
                 .text(maxTemp)
                 .style('font-size', '12px');
+                
+            // Add the legend title
+            legendSvg.append('text')
+            .attr('x', legendWidth)
+            .attr('y', -5)
+            .attr('text-anchor', 'end')
+            .text('Temperature change (Compared to accepted baseline)')
+            .style('font-weight', 'bold')
+            .style('font-size', '13px');
 
         });
     </script>
