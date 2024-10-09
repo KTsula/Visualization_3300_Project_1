@@ -75,12 +75,12 @@
 
       //make co2 the y axis
       const co2Extent = d3.extent(mergedData, d => d.Co2);
-      const co2Scale = d3.scaleLog().domain(co2Extent).range([chartHeight, 0])
+      const co2Scale = d3.scaleLog().domain([Math.max(co2Extent[0] * 0.9, 0.1),co2Extent[1] * 1.1]).range([chartHeight, 0])
 
       let leftAxis = d3.axisLeft(co2Scale)
-
+  
       let leftGridlines = d3.axisLeft(co2Scale)
-        .tickSize(-chartWidth - 10)
+        .tickSize(-chartWidth)
         .tickFormat("")
       annotations.append("g")
         .attr("class", "y axis")
@@ -107,8 +107,8 @@
       // const tempScale = d3.scaleLinear().domain(tempExtent).range([0, chartWidth]);
 
       //make the years increase by 2 on the x axis
-      const yearScale = d3.scaleLinear().domain([1970, 2021]).range([0, chartWidth]);
-      let years = d3.range(1970, 2022, 2);
+      const yearScale = d3.scaleLinear().domain([1969, 2022]).range([0, chartWidth]);
+      let years = d3.range(1970, 2021, 2);
 
       let bottomAxis = d3.axisBottom(yearScale)
         .tickValues(years)
@@ -117,7 +117,7 @@
 
       let bottomGridlines = d3.axisBottom(yearScale)
         .tickValues(years)
-        .tickSize(-chartHeight - 10)
+        .tickSize(-chartHeight)
         .tickFormat("")
         .ticks(6)
       annotations.append("g")
@@ -139,7 +139,77 @@
         .style("font-family", "Verdana")
         .style("font-size", "12")
 
+      //creating the color scale for the temperature changes
+      const tempExtent = d3.extent(mergedData, d => d.TempChange);
+      const colorScale = d3.scaleLinear()
+                          .domain([d3.min(tempExtent), d3.max(tempExtent)])
+                          .range([d3.rgb("#87CEEB"), d3.rgb("#DC143C")])
+                          .interpolate(d3.interpolateHcl);
+      
+      //plotting the circles correlated with their temperature change                   
+      svg.selectAll('circle')
+        .data(mergedData)
+        .join('circle')
+        .attr('cx', d => margins.left+ yearScale(d.Year))
+        .attr('cy', d => margins.top + co2Scale(d.Co2))
+        .attr('r', 7)
+        .style('fill', d => colorScale(d.TempChange));
+
+      //legend for temperature
+      const legendHeight = 200;
+      const legendWidth = 20;
+
+      const legend = svg.append('g')
+        .attr('transform', `translate(${width - margins.left+50}, ${margins.top+100})`);
+      
+      const gradient = svg.append('defs')
+        .append('linearGradient')
+        .attr('id', 'legendGradient')
+        .attr('x1', '0%')
+        .attr('y1', '100%')
+        .attr('x2', '0%')
+        .attr('y2', '0%');
+
+      gradient.append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', colorScale(d3.min(tempExtent)))
+      
+      gradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', colorScale(d3.max(tempExtent)))
+
+      legend.append('rect')
+          .attr('width', legendWidth)
+          .attr('height', legendHeight)
+          .style('fill', 'url(#legendGradient)');
+
+      legend.append('text')
+          .attr('x', legendWidth-17)
+          .attr('y', legendHeight-205)
+          .text(d3.max(tempExtent))
+          .style('font-size', '10px');
+
+      legend.append('text')
+          .attr('x', legendWidth-20)
+          .attr('y', legendHeight+10)
+          .text(d3.min(tempExtent))
+          .style('font-size', '10px');
+      
+      legend.append('text') 
+          .attr("transform", `rotate(-90)`)
+          .attr("x", legendWidth+10)
+          .attr("y", legendHeight)
+          .attr("dy", "0.35em")
+          .text("Surface Temperature Change (°C)")
+          .style("font-family", "Verdana")
+          .style("font-size", "12px")
+          .style("fill", "black")
+          .attr("text-anchor", "start");
+                
+      
     })
+
+
 
 
 
