@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <title>Group Project</title>
+  <style>
+    .gridlines line {
+      stroke: #bbb;
+    }
+
+    .gridlines .domain {
+      stroke: none;
+    }
+  </style>
+</head>
+
+<body>
+  <p>
+  <div style="display: flex; flex-direction: column; align-items: center;">
+    <h3 id="surface_temp_h3" style="font-family: Verdana;">Global Surface Temperature Change, 1880-2021, Visualisation
+    </h3>
+    <svg id="tempplot" width="1300" height="700"></svg>
+  </div>
+  <script>
+    const svg = d3.select('svg#tempplot');
+    const width = svg.attr('width');
+    const height = svg.attr('height');
+    const margins = { top: 10, right: 10, bottom: 165, left: 50 };
+    const chartWidth = width - margins.left - margins.right;
+    const chartHeight = height - margins.top - margins.bottom;
+    let chartArea = svg.append('g')
+      .attr('transform', `translate(${margins.left},${margins.top})`);
+
+    d3.csv('GLB.Ts+dSST.csv')
+      .then((data) => {
+
+        // Months list (will simplify our life later)
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // Function to check if any value in the row is '***' (indicating missing data)
+        function isValidRow(row) {
+          return !months.some(month => row[month] === '***');
+        }
+
+        let filteredData = data
+          .filter(isValidRow)  // Remove rows with '***'
+          .map(d => ({
+            year: +d.Year,
+            temperatures: months.map(month => parseFloat(d[month]))  // Array of temperatures for each row (I used )
+          }));
+
+        console.log("Data: ", filteredData);
+
+        // Grab max and min temperatures for scales
+        const minTemp = d3.min(filteredData, d => d3.min(d.temperatures));
+        const maxTemp = d3.max(filteredData, d => d3.max(d.temperatures));
+        console.log("Min temp: ", minTemp);
+        console.log("Max temp: ", maxTemp);
+
+        // Set up scales
+        let colorScale = d3.scaleLinear().domain([minTemp, maxTemp])
+          .range([d3.rgb("#87CEEB"), d3.rgb("#DC143C")])
+          .interpolate(d3.interpolateHcl);
+
+        const yearExtent = d3.extent(data, d => d.Year);
+
+        let xScale = d3.scaleLinear()
+          .domain(yearExtent)
+          .range([0, chartWidth]);
+
+        let yScale = d3.scalePoint()
+          .domain(months)
+          .range([chartHeight, 0])  // Spread the months evenly
+          .padding(0.5);
+
+        // Create X axis
+        let bottomAxis = d3.axisBottom(xScale)
+          .tickFormat(d => d.toString()) // Format to show as integer
+        svg.append('g')
+          .attr('transform', `translate(${margins.left},${chartHeight + margins.top + 10})`)
+          .call(bottomAxis);
+
+        // Create Y axis
+        let leftAxis = d3.axisLeft(yScale);
+        svg.append('g')
+          .attr('class', 'y axis')
+          .attr('transform', `translate(${margins.left - 10}, ${margins.top})`)
+          .call(leftAxis);
+
+        // Create Gridlines (not sure if it's visually nice or needed in this case)
+        let leftGridlines = d3.axisLeft(yScale)
+          .tickSize(-chartWidth - 10)
+          .tickFormat('');
+        svg.append('g')
+          .attr('class', 'y gridlines')
+          .attr('transform', `translate(${margins.left - 10}, ${margins.top})`)
+          .call(leftGridlines);
+
+        let bottomGridlines = d3.axisBottom(xScale)
+          .tickSize(-chartHeight - 10)
+          .tickFormat('');
+        svg.append('g')
+          .attr('class', 'x gridlines')
+          .attr('transform', `translate(${margins.left}, ${chartHeight + margins.top + 10})`)
+          .call(bottomGridlines);
+
+        // Adding circles for each temperature value
+        chartArea.selectAll('circle')
+          .data(filteredData.flatMap(d => d.temperatures.map((temp, i) => ({
+            year: d.year,
+            month: months[i],
+            temp: +temp
+          }))))
+          .enter()
+          .append('circle')
+          .attr('cx', d => xScale(d.year))
+          .attr('cy', d => yScale(d.month))
+          .attr('r', 5)
+          .attr('fill', d => colorScale(d.temp));
+
+        // Add color legend
+        const legendWidth = 300;
+        const legendHeight = 10;
+
+        const legendSvg = svg.append('g')
+          .attr('transform', `translate(${width - legendWidth - margins.right}, ${height - margins.bottom + 130})`);
+
+        const gradient = legendSvg.append('defs')
+          .append('linearGradient')
+          .attr('id', 'legendGradient')
+          .attr('x1', '0%')
+          .attr('y1', '0%')
+          .attr('x2', '100%')
+          .attr('y2', '0%');
+
+        gradient.append('stop')
+          .attr('offset', '0%')
+          .attr('stop-color', colorScale(minTemp));
+
+        gradient.append('stop')
+          .attr('offset', '100%')
+          .attr('stop-color', colorScale(maxTemp));
+
+        legendSvg.append('rect')
+          .attr('width', legendWidth)
+          .attr('height', legendHeight)
+          .style('fill', 'url(#legendGradient)');
+
+        // Adding text labels for min and max temperature values
+        legendSvg.append('text')
+          .attr('x', 0)
+          .attr('y', legendHeight + 15)
+          .text(minTemp)
+          .style('font-size', '12px');
+
+        legendSvg.append('text')
+          .attr('x', legendWidth)
+          .attr('y', legendHeight + 15)
+          .attr('text-anchor', 'end')
+          .text(maxTemp)
+          .style('font-size', '12px');
+
+        // Add the legend title
+        legendSvg.append('text')
+          .attr('x', legendWidth)
+          .attr('y', -5)
+          .attr('text-anchor', 'end')
+          .text('Temperature change (Compared to accepted baseline)')
+          .style('font-weight', 'bold')
+          .style('font-size', '13px');
+
+      });
+  </script>
+  </p>
+
+  <p style="font-family: Verdana; font-size: 13">This graph shows the correlation between carbon emissions and change in
+    surface
+    temperature from the previous year
+    in the United States. It is predicted that as the amount of carbon emissions increases, the surface temperature
+    increases as well.
+  </p>
+  <div style="display: flex; flex-direction: column; align-items: center;">
+    <svg id="scatterplot" height="700" width="1300" style="margin-top:30px">
+    </svg>
+  </div>
+
+  <script>
+
+    const svg2 = d3.select('svg#scatterplot');
+    const width2 = svg.attr('width');
+    const height2 = svg.attr('height');
+    const margins2 = { top: 10, right: 20, bottom: 150, left: 70 };
+    const chartWidth2 = width - margins.left - margins.right;
+    const chartHeight2 = height - margins.top - margins.bottom;
+
+    let annotations = svg2.append("g").attr("id", "annotations");
+    let chartArea2 = svg2.append("g").attr("id", "points")
+      .attr("transform", `translate(${margins.left},${margins.top})`);
+
+    Promise.all([d3.csv("USco2.csv", d3.autoType), d3.csv("UStemp.csv", d3.autoType)]).then(([co2data, tempdata]) => {
+
+      console.log(co2data);
+      console.log(tempdata);
+
+      // need to reshape tempData
+      const newTempData = [];
+      tempdata.forEach(row => {
+        const country = row["Country Name"];
+        // loop through the years and create new data set where year is a column
+        for (let year = 1970; year <= 2021; year++) {
+          if (row[year] !== "") {
+            newTempData.push({
+              Country: country,
+              Year: year,
+              "Temp Change": row[year]
+            });
+          }
+        }
+      });
+      //Merge data to have country, year, co2 and change in temperature
+      const mergedData = co2data.map(co2Row => {
+        const tempRow = newTempData.find(temp => temp.Country.toLowerCase().includes(co2Row.country_name.toLowerCase()) && temp.Year === co2Row.year);
+
+        return {
+          Country: co2Row.country_name,
+          Year: co2Row.year,
+          Co2: co2Row.value,
+          TempChange: tempRow ? tempRow["Temp Change"] : null
+        };
+      }).filter(d => d.TempChange !== null);
+
+      console.log(mergedData);
+
+      //make co2 the y axis
+      const co2Extent = d3.extent(mergedData, d => d.Co2);
+      const co2Scale = d3.scaleLog().domain([Math.max(co2Extent[0] * 0.9, 0.1), co2Extent[1] * 1.1]).range([chartHeight, 0])
+
+      let leftAxis = d3.axisLeft(co2Scale)
+
+      let leftGridlines = d3.axisLeft(co2Scale)
+        .tickSize(-chartWidth)
+        .tickFormat("")
+      annotations.append("g")
+        .attr("class", "y axis")
+        .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+        .call(leftAxis)
+      annotations.append("g")
+        .attr("class", "y gridlines")
+        .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+        .call(leftGridlines);
+
+      //Add label to y axis
+      annotations.append("text")
+        .attr("class", "y label")
+        .attr("text-anchor", "middle")
+        .attr("transform", `rotate(-90)`)
+        .attr("x", -chartHeight / 2 - margins.top)
+        .attr("y", margins.left - 50)
+        .text("CO2 Emissions (kt)")
+        .style("font-family", "Verdana")
+        .style("font-size", "12")
+
+
+
+      //make the years increase by 2 on the x axis
+      const yearScale = d3.scaleLinear().domain([1969, 2022]).range([0, chartWidth]);
+      let years = d3.range(1970, 2021, 2);
+
+      let bottomAxis = d3.axisBottom(yearScale)
+        .tickValues(years)
+        .tickSize(-chartHeight - 10)
+        .tickFormat(d3.format("d"));
+
+      let bottomGridlines = d3.axisBottom(yearScale)
+        .tickValues(years)
+        .tickSize(-chartHeight)
+        .tickFormat("")
+        .ticks(6)
+      annotations.append("g")
+        .attr("class", "x axis")
+        .attr("transform", `translate(${margins.left},${chartHeight + margins.top})`)
+        .call(bottomAxis);
+      annotations.append("g")
+        .attr("class", "x gridlines")
+        .attr("transform", `translate(${margins.left},${chartHeight + margins.top})`)
+        .call(bottomGridlines);
+
+      // add label to x axis
+      annotations.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", chartWidth / 2 + margins.left)
+        .attr("y", chartHeight + margins.top + 30)
+        .text("Year")
+        .style("font-family", "Verdana")
+        .style("font-size", "12")
+
+      //creating the color scale for the temperature changes
+      const tempExtent = d3.extent(mergedData, d => d.TempChange);
+      const colorScale = d3.scaleLinear()
+        .domain([d3.min(tempExtent), d3.max(tempExtent)])
+        .range([d3.rgb("#87CEEB"), d3.rgb("#DC143C")])
+        .interpolate(d3.interpolateHcl);
+
+      //plotting the circles correlated with their temperature change                   
+      svg2.selectAll('circle')
+        .data(mergedData)
+        .join('circle')
+        .attr('cx', d => margins.left + yearScale(d.Year))
+        .attr('cy', d => margins.top + co2Scale(d.Co2))
+        .attr('r', 7)
+        .style('fill', d => colorScale(d.TempChange));
+
+      //legend for temperature
+      const legendHeight = 10;
+      const legendWidth = 300;
+
+      const legend = svg2.append('g')
+        .attr('transform', `translate(${width - legendWidth - margins.right - 50}, ${height - margins.bottom + 60})`);
+
+      const gradient = svg2.append('defs')
+        .append('linearGradient')
+        .attr('id', 'legendGradient')
+        .attr('x1', '0%')
+        .attr('y1', '0%')
+        .attr('x2', '100%')
+        .attr('y2', '0%');
+
+      gradient.append('stop')
+        .attr('offset', '0%')
+        .attr('stop-color', colorScale(d3.min(tempExtent)))
+
+      gradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', colorScale(d3.max(tempExtent)))
+
+      legend.append('rect')
+        .attr('width', legendWidth)
+        .attr('height', legendHeight)
+        .style('fill', 'url(#legendGradient)');
+
+      legend.append('text')
+        .attr('x', legendWidth)
+        .attr('y', legendHeight + 15)
+        .attr('text-anchor', 'end')
+        .text(d3.max(tempExtent))
+        .style('font-size', '10px');
+
+      legend.append('text')
+        .attr('x', 0)
+        .attr('y', legendHeight + 15)
+        .text(d3.min(tempExtent))
+        .style('font-size', '10px');
+
+      legend.append('text')
+        .attr("x", legendWidth)
+        .attr("y", -5)
+        .attr("text-anchor", "end")
+        .text("Change in Surface Temperature (Celsius)")
+        .style("font-family", "Verdana")
+        .style("font-size", "12px")
+        .style("fill", "black")
+        .style("font-weight", "bold")
+
+
+    })
+
+  </script>
+  </p>
+
+</body>
+
+</html>

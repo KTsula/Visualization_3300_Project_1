@@ -195,12 +195,8 @@
         .style('font-size', '10px');
 
       legend.append('text')
-        // .attr("transform", `rotate(-90)`)
-        // .attr("x", legendWidth + 10)
-        // .attr("y", legendHeight)
         .attr("x", legendWidth)
         .attr("y", -5)
-        // .attr("dy", "0.35em")
         .attr("text-anchor", "end")
         .text("Change in Surface Temperature (Celsius)")
         .style("font-family", "Verdana")
@@ -211,61 +207,6 @@
 
     })
 
-
-
-
-
-    // let leftAxis = d3.axisLeft(yScale);
-    // svg.append('g')
-    //   .attr('class', 'y axis')
-    //   .attr('transform', `translate(${margins.left - 10},${margins.top})`)
-    //   .call(leftAxis);
-    // put in random values before cleaning the data
-
-    // const xScale = d3.scaleLinear()
-    // .domain([0, 40])
-    // .range([0, chartWidth]);
-
-    // const yScale = d3.scaleLinear()
-    // .domain([0, 50])
-    // .range([chartHeight, 0]);
-
-
-    // let leftAxis = d3.axisLeft(yScale);
-    //   svg.append('g')
-    //     .attr('class', 'y axis')
-    //     .attr('transform', `translate(${margins.left - 10},${margins.top})`)
-    //     .call(leftAxis);
-
-    // let bottomAxis = d3.axisBottom(xScale);
-    // svg.append('g')
-    //   .attr('class', 'x axis')
-    //   .attr('transform', `translate(${margins.left},${margins.top + chartHeight + 10})`)
-    //   .call(bottomAxis);
-
-
-
-
-    // let leftGridlines = d3.axisLeft(yScale)
-    //   .tickFormat("")
-    //   .tickSize(-chartWidth - 10);
-    // svg.append('g')
-    //   .attr('class', 'y gridlines')
-    //   .attr('transform', `translate(${margins.left - 10},${margins.top})`)
-    //   .call(leftGridlines);
-
-    // let bottomGridlines = d3.axisBottom(xScale)
-    //   .tickFormat("")
-    //   .tickSize(-chartHeight - 10)
-    //   .ticks(6);
-    // svg.append('g')
-    //   .attr('class', 'x gridlines')
-    //   .attr('transform', `translate(${margins.left},${margins.top + chartHeight + 10})`)
-    //   .call(bottomGridlines);
-
-
-    // let chartArea = svg.append('g')
-    //   .attr('transform', `translate(${margins.left},${margins.top})`);
   </script>
   </p>
 
