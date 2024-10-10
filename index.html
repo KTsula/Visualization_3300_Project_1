@@ -23,12 +23,13 @@
     <h3 id="surface_temp_h3" style="font-family: Verdana;">Global Surface Temperature Change, 1880-2021, Visualisation
     </h3>
     <svg id="tempplot" width="1300" height="700"></svg>
+    <svg id="colorLegend1" height="100" width="600" style="background: #fff; margin-top:30px" ></svg>
   </div>
   <script>
     const svg = d3.select('svg#tempplot');
     const width = svg.attr('width');
     const height = svg.attr('height');
-    const margins = { top: 10, right: 10, bottom: 165, left: 50 };
+    const margins = { top: 10, right: 10, bottom: 60, left: 60 };
     const chartWidth = width - margins.left - margins.right;
     const chartHeight = height - margins.top - margins.bottom;
     let chartArea = svg.append('g')
@@ -61,9 +62,7 @@
         console.log("Max temp: ", maxTemp);
 
         // Set up scales
-        let colorScale = d3.scaleLinear().domain([minTemp, maxTemp])
-          .range([d3.rgb("#87CEEB"), d3.rgb("#DC143C")])
-          .interpolate(d3.interpolateHcl);
+        let colorScale = d3.scaleSequential(d3.interpolateViridis).domain([minTemp, maxTemp])
 
         const yearExtent = d3.extent(data, d => d.Year);
 
@@ -122,58 +121,180 @@
           .attr('fill', d => colorScale(d.temp));
 
         // Add color legend
-        const legendWidth = 300;
-        const legendHeight = 10;
+        drawLegend("#colorLegend1", colorScale);
 
-        const legendSvg = svg.append('g')
-          .attr('transform', `translate(${width - legendWidth - margins.right}, ${height - margins.bottom + 130})`);
-
-        const gradient = legendSvg.append('defs')
-          .append('linearGradient')
-          .attr('id', 'legendGradient')
-          .attr('x1', '0%')
-          .attr('y1', '0%')
-          .attr('x2', '100%')
-          .attr('y2', '0%');
-
-        gradient.append('stop')
-          .attr('offset', '0%')
-          .attr('stop-color', colorScale(minTemp));
-
-        gradient.append('stop')
-          .attr('offset', '100%')
-          .attr('stop-color', colorScale(maxTemp));
-
-        legendSvg.append('rect')
-          .attr('width', legendWidth)
-          .attr('height', legendHeight)
-          .style('fill', 'url(#legendGradient)');
-
-        // Adding text labels for min and max temperature values
-        legendSvg.append('text')
-          .attr('x', 0)
-          .attr('y', legendHeight + 15)
-          .text(minTemp)
-          .style('font-size', '12px');
-
-        legendSvg.append('text')
-          .attr('x', legendWidth)
-          .attr('y', legendHeight + 15)
-          .attr('text-anchor', 'end')
-          .text(maxTemp)
-          .style('font-size', '12px');
-
-        // Add the legend title
-        legendSvg.append('text')
-          .attr('x', legendWidth)
-          .attr('y', -5)
-          .attr('text-anchor', 'end')
-          .text('Temperature change (Compared to accepted baseline)')
-          .style('font-weight', 'bold')
-          .style('font-size', '13px');
+        // Add axis labels
+        svg.append('text')
+          .attr('class', 'x label')
+          .attr('text-anchor', 'middle')
+          .attr('x', chartWidth / 2 + margins.left)
+          .attr('y', chartHeight + margins.top + 50)
+          .text('Year')
+          .style('font-family', 'Verdana')
+          .style('font-size', '12');
+          
+        svg.append('text')
+          .attr('class', 'y label')
+          .attr('text-anchor', 'middle')
+          .attr('transform', `rotate(-90)`)
+          .attr('x', -chartHeight / 2 - margins.top)
+          .attr('y', margins.left - 50)
+          .text('Month')
+          .style('font-family', 'Verdana')
+          .style('font-size', '12');
 
       });
   </script>
+  <script>
+    // Flexible legend-drawing function - Jeff Rzeszotarski, 2022
+    //   Released under MIT Free license
+    //  Takes in an SVG element selector <legendSelector> and a d3 color scale <legendColorScale>
+    //
+    // Usage example: drawLegend("#legendID", grossIncomeColorScale)
+    function drawLegend(legendSelector, legendColorScale) {
+      
+      // This code should adapt to a variety of different kinds of color scales
+      //  Credit Prof. Rz if you are basing a legend on this structure, and note PERFORMANCE CONSIDERATIONS
+      
+      // Shrink legend bar by 5 px inwards from sides of SVG
+      const offsets = { width: 10,
+                        top: 2,
+                        bottom: 24 }; 
+      // Number of integer 'pixel steps' to draw when showing continuous scales
+      //    Warning, not using a canvas element so lots of rect tags will be created for low stepSize, causing issues with performance -- keep this large
+      const stepSize = 4; 
+      // Extend the minmax by 0% in either direction to expose more features by default
+      const minMaxExtendPercent = 0;
+       
+      
+      const legend = d3.select(legendSelector);
+      const legendHeight = legend.attr("height");
+      const legendBarWidth = legend.attr("width") - (offsets.width * 2);
+      const legendMinMax = d3.extent(legendColorScale.domain()); 
+                  // recover the min and max values from most kinds of numeric scales
+      const minMaxExtension = (legendMinMax[1] - legendMinMax[0]) * minMaxExtendPercent;
+      const barHeight = legendHeight - offsets.top - offsets.bottom;     
+      
+      // In this case the "data" are pixels, and we get numbers to use in colorScale
+      // Use this to make axis labels
+      let barScale = d3.scaleLinear().domain([legendMinMax[0]-minMaxExtension,
+                                                legendMinMax[1]+minMaxExtension])
+                                     .range([0,legendBarWidth]);
+      let barAxis = d3.axisBottom(barScale);
+      
+      // Place for bar slices to live
+      let bar = legend.append("g")
+                      .attr("class", "legend colorbar")
+                      .attr("transform", `translate(${offsets.width},${offsets.top})`)
+      
+      // ****** SWITCHES FOR DIFFERENT SCALE TYPES ******
+      
+      // Check if we're using a binning scale - if so, we make blocks of color
+      if (legendColorScale.hasOwnProperty('thresholds') || legendColorScale.hasOwnProperty('quantiles')) {
+        // Get the thresholds
+        let thresholds = [];
+        if (legendColorScale.hasOwnProperty('thresholds')) { thresholds = legendColorScale.thresholds() }
+        else { thresholds = legendColorScale.quantiles() }
+        
+        const barThresholds = [legendMinMax[0], ...thresholds, legendMinMax[1]];
+        
+        // Use the quantile breakpoints plus the min and max of the scale as tick values
+        barAxis.tickValues(barThresholds);
+        
+        // Draw rectangles between the threshold segments
+        for (let i=0; i<barThresholds.length-1; i++) {
+          let dataStart = barThresholds[i];
+          let dataEnd = barThresholds[i+1];
+          let pixelStart = barAxis.scale()(dataStart);
+          let pixelEnd = barAxis.scale()(dataEnd);
+          
+          bar.append("rect")
+            .attr("x", pixelStart)
+            .attr("y", 0)
+            .attr("width", pixelEnd - pixelStart )
+            .attr("height", barHeight)
+            .style("fill", legendColorScale( (dataStart + dataEnd) / 2.0 ) ); 
+        }
+      }
+      // Else if we have a continuous / roundable scale
+      //  In an ideal world you might construct a custom gradient mapped to the scale
+      //  For this one, we use a hack of making stepped rects
+      else if (legendColorScale.hasOwnProperty('rangeRound')) {
+        // NOTE: The barAxis may round min and max values to make them pretty
+        // ** This also means there is a risk of the legend going beyond scale bounds
+        // We need to use the barAxis min and max just to be sure the bar is complete
+        //    Using barAxis.scale().invert() goes from *axis* pixels to data values easily
+        // ** We also need to create patches for the scale if the labels exceed bounds
+        //     (floating point comparisons risky for small data ranges,but not a big deal
+        //      because patches will be indistinguishable from actual scale bottom)
+        // It's likely that scale clamping will actually do this for us elegantly
+        // ...but better to be safer and patch the regions anyways
+        
+        for (let i=0; i<legendBarWidth; i=i+stepSize) {
+          
+          let center = i+(stepSize/2);
+          let dataCenter = barAxis.scale().invert( center );
+          
+          // below normal scale bounds
+          if ( dataCenter < legendMinMax[0] ) { 
+            bar.append("rect")
+              .attr("x", i)
+              .attr("y", 0)
+              .attr("width", stepSize)
+              .attr("height",barHeight)
+              .style("fill", legendColorScale( legendMinMax[0] ) ); 
+          }
+          // within normal scale bounds
+          else if ( dataCenter < legendMinMax[1] ) {
+            bar.append("rect")
+                .attr("x", i)
+                .attr("y", 0)
+                .attr("width", stepSize)
+                .attr("height",barHeight)
+                .style("fill", legendColorScale( dataCenter ) ); 
+          }
+          // above normal scale bounds
+          else {
+            bar.append("rect")
+                .attr("x", i)
+                .attr("y", 0)
+                .attr("width", stepSize)
+                .attr("height",barHeight)
+                .style("fill", legendColorScale( legendMinMax[1] ) ); 
+          }
+          
+        }
+      }
+      // Otherwise we have a nominal scale
+      else {
+        let nomVals = legendColorScale.domain().sort();
+        
+        // Use a scaleBand to make blocks of color and simple labels
+        let barScale = d3.scaleBand().domain(nomVals)
+                                      .range([0,legendBarWidth])
+                                      .padding(0.05);
+        barAxis.scale(barScale);
+        
+        // Draw rectangles for each nominal entry
+        nomVals.forEach( d => {
+          bar.append("rect")
+            .attr("x", barScale(d) )
+            .attr("y", 0)
+            .attr("width", barScale.bandwidth() )
+            .attr("height", barHeight)
+            .style("fill", legendColorScale( d ) );
+        });
+      }
+      // DONE w/SWITCH
+      
+      // Finally, draw legend labels
+      legend.append("g")
+            .attr("class", "legend axis")
+            .attr("transform",`translate(${offsets.width},${offsets.top+barHeight+5})`)
+            .call(barAxis);
+      
+    }
+    </script>
   </p>
 
   <p style="font-family: Verdana; font-size: 13">This graph shows the correlation between carbon emissions and change in
@@ -185,20 +306,21 @@
   <div style="display: flex; flex-direction: column; align-items: center;">
     <svg id="scatterplot" height="700" width="1300" style="margin-top:30px">
     </svg>
+    <svg id="colorLegend2" height="100" width="600" style="background: #fff; margin-top:30px"></svg>
   </div>
 
   <script>
 
     const svg2 = d3.select('svg#scatterplot');
-    const width2 = svg.attr('width');
-    const height2 = svg.attr('height');
-    const margins2 = { top: 10, right: 20, bottom: 150, left: 70 };
-    const chartWidth2 = width - margins.left - margins.right;
-    const chartHeight2 = height - margins.top - margins.bottom;
+    const width2 = svg2.attr('width');
+    const height2 = svg2.attr('height');
+    const margins2 = { top: 10, right: 20, bottom: 80, left: 80 };
+    const chartWidth2 = width2 - margins2.left - margins2.right;
+    const chartHeight2 = height2 - margins2.top - margins2.bottom;
 
     let annotations = svg2.append("g").attr("id", "annotations");
     let chartArea2 = svg2.append("g").attr("id", "points")
-      .attr("transform", `translate(${margins.left},${margins.top})`);
+      .attr("transform", `translate(${margins2.left},${margins2.top})`);
 
     Promise.all([d3.csv("USco2.csv", d3.autoType), d3.csv("UStemp.csv", d3.autoType)]).then(([co2data, tempdata]) => {
 
@@ -236,20 +358,20 @@
 
       //make co2 the y axis
       const co2Extent = d3.extent(mergedData, d => d.Co2);
-      const co2Scale = d3.scaleLog().domain([Math.max(co2Extent[0] * 0.9, 0.1), co2Extent[1] * 1.1]).range([chartHeight, 0])
+      const co2Scale = d3.scaleLog().domain([Math.max(co2Extent[0] * 0.9, 0.1), co2Extent[1] * 1.1]).range([chartHeight2, 0])
 
       let leftAxis = d3.axisLeft(co2Scale)
 
       let leftGridlines = d3.axisLeft(co2Scale)
-        .tickSize(-chartWidth)
+        .tickSize(-chartWidth2)
         .tickFormat("")
       annotations.append("g")
         .attr("class", "y axis")
-        .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+        .attr("transform", `translate(${margins2.left - 10},${margins2.top})`)
         .call(leftAxis)
       annotations.append("g")
         .attr("class", "y gridlines")
-        .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+        .attr("transform", `translate(${margins2.left - 10},${margins2.top})`)
         .call(leftGridlines);
 
       //Add label to y axis
@@ -257,116 +379,69 @@
         .attr("class", "y label")
         .attr("text-anchor", "middle")
         .attr("transform", `rotate(-90)`)
-        .attr("x", -chartHeight / 2 - margins.top)
-        .attr("y", margins.left - 50)
+        .attr("x", -chartHeight2 / 2 - margins2.top)
+        .attr("y", margins2.left - 50)
         .text("CO2 Emissions (kt)")
         .style("font-family", "Verdana")
         .style("font-size", "12")
 
 
 
-      //make the years increase by 2 on the x axis
-      const yearScale = d3.scaleLinear().domain([1969, 2022]).range([0, chartWidth]);
-      let years = d3.range(1970, 2021, 2);
+      // Dynamically compute the extent of years in your data
+      const yearExtent = d3.extent(mergedData, d => d.Year);
 
+      // Create a scale for the years dynamically using the extent
+      const yearScale = d3.scaleLinear().domain(yearExtent).range([0, chartWidth2]);
+
+      // Create the bottom axis with automatic ticks based on the year extent
       let bottomAxis = d3.axisBottom(yearScale)
-        .tickValues(years)
-        .tickSize(-chartHeight - 10)
         .tickFormat(d3.format("d"));
 
+      // Create bottom gridlines
       let bottomGridlines = d3.axisBottom(yearScale)
-        .tickValues(years)
-        .tickSize(-chartHeight)
-        .tickFormat("")
-        .ticks(6)
+        .tickSize(-chartHeight2)
+        .tickFormat("");
+
+      // Append the axis to the chart
       annotations.append("g")
         .attr("class", "x axis")
-        .attr("transform", `translate(${margins.left},${chartHeight + margins.top})`)
+        .attr("transform", `translate(${margins2.left},${chartHeight2 + margins2.top})`)
         .call(bottomAxis);
+
+      // Append the gridlines to the chart
       annotations.append("g")
         .attr("class", "x gridlines")
-        .attr("transform", `translate(${margins.left},${chartHeight + margins.top})`)
+        .attr("transform", `translate(${margins2.left},${chartHeight2 + margins2.top})`)
         .call(bottomGridlines);
+
 
       // add label to x axis
       annotations.append("text")
         .attr("class", "x label")
         .attr("text-anchor", "middle")
-        .attr("x", chartWidth / 2 + margins.left)
-        .attr("y", chartHeight + margins.top + 30)
+        .attr("x", chartWidth2 / 2 + margins2.left)
+        .attr("y", chartHeight2 + margins2.top + 30)
         .text("Year")
         .style("font-family", "Verdana")
         .style("font-size", "12")
 
       //creating the color scale for the temperature changes
       const tempExtent = d3.extent(mergedData, d => d.TempChange);
-      const colorScale = d3.scaleLinear()
-        .domain([d3.min(tempExtent), d3.max(tempExtent)])
-        .range([d3.rgb("#87CEEB"), d3.rgb("#DC143C")])
-        .interpolate(d3.interpolateHcl);
+      const colorScale2 = d3.scaleSequential(d3.interpolateViridis)
+        .domain([d3.min(tempExtent), d3.max(tempExtent)]);
 
       //plotting the circles correlated with their temperature change                   
       svg2.selectAll('circle')
         .data(mergedData)
         .join('circle')
-        .attr('cx', d => margins.left + yearScale(d.Year))
-        .attr('cy', d => margins.top + co2Scale(d.Co2))
+        .attr('cx', d => margins2.left + yearScale(d.Year))
+        .attr('cy', d => margins2.top + co2Scale(d.Co2))
         .attr('r', 7)
-        .style('fill', d => colorScale(d.TempChange));
+        .style('fill', d => colorScale2(d.TempChange));
 
       //legend for temperature
-      const legendHeight = 10;
-      const legendWidth = 300;
-
-      const legend = svg2.append('g')
-        .attr('transform', `translate(${width - legendWidth - margins.right - 50}, ${height - margins.bottom + 60})`);
-
-      const gradient = svg2.append('defs')
-        .append('linearGradient')
-        .attr('id', 'legendGradient')
-        .attr('x1', '0%')
-        .attr('y1', '0%')
-        .attr('x2', '100%')
-        .attr('y2', '0%');
-
-      gradient.append('stop')
-        .attr('offset', '0%')
-        .attr('stop-color', colorScale(d3.min(tempExtent)))
-
-      gradient.append('stop')
-        .attr('offset', '100%')
-        .attr('stop-color', colorScale(d3.max(tempExtent)))
-
-      legend.append('rect')
-        .attr('width', legendWidth)
-        .attr('height', legendHeight)
-        .style('fill', 'url(#legendGradient)');
-
-      legend.append('text')
-        .attr('x', legendWidth)
-        .attr('y', legendHeight + 15)
-        .attr('text-anchor', 'end')
-        .text(d3.max(tempExtent))
-        .style('font-size', '10px');
-
-      legend.append('text')
-        .attr('x', 0)
-        .attr('y', legendHeight + 15)
-        .text(d3.min(tempExtent))
-        .style('font-size', '10px');
-
-      legend.append('text')
-        .attr("x", legendWidth)
-        .attr("y", -5)
-        .attr("text-anchor", "end")
-        .text("Change in Surface Temperature (Celsius)")
-        .style("font-family", "Verdana")
-        .style("font-size", "12px")
-        .style("fill", "black")
-        .style("font-weight", "bold")
-
-
-    })
+      drawLegend("#colorLegend2", colorScale2);
+    });
 
   </script>
   </p>
