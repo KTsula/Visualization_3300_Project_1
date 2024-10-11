@@ -22,15 +22,18 @@
   <p>
     <div style="display: flex; align-items: flex-start; margin: 20px;">
       <div style="flex: 1; margin-right: 20px;">
-        <h3 style="font-family: Verdana;">Global Surface Temperature monthly change, 1880-2021</h3>
+        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">Global Surface Temperature monthly change, 1880-2021</h3>
+        <p>Chart 1: Monthly Temperature Change (1880-2021): This chart displays a heatmap where each circle represents the temperature deviation from baseline for a specific month and year. The color gradient visually indicates the temperature change, with cooler temperatures shown in purple and warmer temperatures in yellow.</p>
         <svg id="tempChart1" width="900" height="500"></svg>
         <svg id="colorLegend1" width="400" height="50" style="background: #fff; margin-top:10px; margin-left:50px;"></svg>
       </div>
-      <div style="flex: 1;">
-        <h3 style="font-family: Verdana;">Bi-Yearly average change compared to baseline</h3>
+      <div style="flex: 1; align-items: center;">
+        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">Bi-Yearly average change compared to baseline</h3>
+        <p>Chart 2: Bi-Yearly Average Temperature Change: This bar chart shows the average temperature change compared to the baseline for every other year.<br><br></p>
         <svg id="tempChart2" width="500" height="500"></svg>
       </div>
     </div>
+    <p style="text-align: center; background-color: rgb(242, 233, 233); padding: 10px">By analyzing both charts, we observed a clear warming trend in global surface temperature over the past decades.</p>
     <script id="tempChart1_script">
       // Temperature Chart 1 (With gradually changing colored circles)
       const svg_1 = d3.select('svg#tempChart1');
@@ -250,11 +253,8 @@
     </script>
   </p>
   <p>
-  <p style="font-family: Verdana; font-size: 13">This graph shows the correlation between carbon emissions and change in
-    surface
-    temperature from the previous year
-    in the United States. It is predicted that as the amount of carbon emissions increases, the surface temperature
-    increases as well.
+  <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">CO2 Emissions in the USA - Paired with Temperature Insights</h3>
+  <p style="font-family: Verdana; font-size: 13">This graph shows the progression of Co2 emissions between the years 1970 and 2020 in the Unites States. The color of the circles represents the change in temperature for that year. The color legend below the graph shows the range of temperature changes.</p>
   </p>
   <div style="display: flex; flex-direction: column; align-items: center;">
     <svg id="scatterplot" height="600" width="1000" style="margin-top:30px">
