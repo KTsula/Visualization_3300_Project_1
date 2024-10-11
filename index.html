@@ -28,8 +28,8 @@
         <svg id="colorLegend1" width="400" height="50" style="background: #fff; margin-top:10px; margin-left:50px;"></svg>
       </div>
       <div style="flex: 1; align-items: center;">
-        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">Bi-Yearly average change compared to baseline</h3>
-        <p>Chart 2: Bi-Yearly Average Temperature Change: This bar chart shows the average temperature change compared to the baseline for every other year.<br><br></p>
+        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">5-Year average change compared to baseline</h3>
+        <p>Chart 2: 5-Year Average Temperature Change: This bar chart shows the average temperature change compared to the baseline for every other 5 years.<br><br></p>
         <svg id="tempChart2" width="500" height="500"></svg>
       </div>
     </div>
@@ -148,6 +148,7 @@
             .attr('r', 5)
             .attr('fill', d => colorScale_1(d.temp));
 
+          chartArea_1.raise();  // Raise the chart area to the top
           // Add color legend
           drawLegend("#colorLegend1", colorScale_1);
 
@@ -183,7 +184,7 @@
           // Only grab years that are multiples of 5 (for better visibility of the chart)
           yearAvgTemp = yearAvgTemp.filter(d => d.year % 5 === 0);
 
-          console.log("Yearly average temperature: ", yearAvgTemp);
+          console.log("5-year average temperature: ", yearAvgTemp);
 
           // Set up the scales
           const xScale_2 = d3.scaleLinear()
