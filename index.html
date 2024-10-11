@@ -31,7 +31,7 @@
         </div>
       </div>
       <div style="flex: 1; align-items: center;">
-        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">5-Year average deviation compared to baseline</h3>
+        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">Temperature Deviation Compared to Baseline</h3>
         <p style="font-family: Verdana">Chart 2: Every 5-Year Temperature Deviation: This bar chart shows the temperature deviation of averaged-year (for years divisible by 5) compared to the baseline.<br><br></p>
         <svg id="tempChart2" width="600" height="500"></svg>
       </div>
@@ -265,7 +265,7 @@
   <div style="display: flex; flex-direction: column; align-items: center;">
     <svg id="scatterplot" height="600" width="1000" style="margin-top:30px">
     </svg>
-    <div style="text-align: center; margin-top: 10px;">
+    <div style="text-align: center;">
       <p style="font-family: Verdana; font-size: 12px;">Temperature Deviations (°C) from the 1951-1980 Mean</p>
       <svg id="colorLegend2" width="400" height="50" style="background: #fff;"></svg>
     </div>
@@ -347,8 +347,6 @@
         .attr("x", -chartHeight_3 / 2 - margins_3.top)
         .attr("y", margins_3.left - 50)
         .text("CO2 Emissions (kt)")
-        .style("font-family", "Verdana")
-        .style("font-size", "12")
 
 
 
@@ -385,10 +383,8 @@
         .attr("class", "x label")
         .attr("text-anchor", "middle")
         .attr("x", chartWidth_3 / 2 + margins_3.left)
-        .attr("y", chartHeight_3 + margins_3.top + 30)
+        .attr("y", chartHeight_3 + margins_3.top + 50)
         .text("Year")
-        .style("font-family", "Verdana")
-        .style("font-size", "12")
 
       //creating the color scale for the temperature changes
       const tempExtent_3 = d3.extent(mergedData, d => d.TempDeviation);
