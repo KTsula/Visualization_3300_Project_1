@@ -18,6 +18,7 @@
 </head>
 
 <body>
+  <h1 style="text-align: center">Warming Trend: A Visual Analysis of Temperature Change and CO2 Emissions</h1>
   <p>
     <div style="display: flex; align-items: flex-start; margin: 20px;">
       <div style="flex: 1; margin-right: 20px;">
@@ -45,7 +46,7 @@
       let svg_2 = d3.select('svg#tempChart2');
       let width_2 = svg_2.attr('width');
       let height_2 = svg_2.attr('height');
-      let margins_2 = { top: 20, right: 20, bottom: 50, left: 50 };
+      let margins_2 = { top: 20, right: 20, bottom: 60, left: 60 };
       const chartWidth_2 = width_2 - margins_2.left - margins_2.right;
       const chartHeight_2 = height_2 - margins_2.top - margins_2.bottom;
       let chartArea_2 = svg_2.append('g')
@@ -153,9 +154,7 @@
             .attr('text-anchor', 'middle')
             .attr('x', chartWidth_1 / 2 + margins_1.left)
             .attr('y', chartHeight_1 + margins_1.top + 50)
-            .text('Year')
-            .style('font-family', 'Verdana')
-            .style('font-size', '12');
+            .text('Year');
             
           svg_1.append('text')
             .attr('class', 'y label')
@@ -163,9 +162,7 @@
             .attr('transform', `rotate(-90)`)
             .attr('x', -chartHeight_1 / 2 - margins_1.top)
             .attr('y', margins_1.left - 50)
-            .text('Month')
-            .style('font-family', 'Verdana')
-            .style('font-size', '12');
+            .text('Month');
 
 
           /*
@@ -200,11 +197,28 @@
           .attr('transform', `translate(0, ${chartHeight_2})`)
           .call(bottomAxis_2);
 
+          // Add label for X axis
+          chartArea_2.append('text')
+          .attr('class', 'x label')
+          .attr('text-anchor', 'middle')
+          .attr('x', chartWidth_2 / 2)
+          .attr('y', chartHeight_2 + 50)
+          .text('Year')
+
           // Create Y axis
           const leftAxis_2 = d3.axisLeft(yScale_2);
           chartArea_2.append('g')
             .attr('transform', `translate(-10, 0)`) // Shift left by 10 pixels
             .call(leftAxis_2);
+          
+          // Add label for Y axis
+          chartArea_2.append('text')
+          .attr('class', 'y label')
+          .attr('text-anchor', 'middle')
+          .attr('transform', `rotate(-90)`)
+          .attr('x', -chartHeight_2 / 2)
+          .attr('y', -50)
+          .text('Temperature change from baseline (°C)')
 
 
           // Create horizontal line at y=0
@@ -299,9 +313,10 @@
 
       //make co2 the y axis
       const co2Extent = d3.extent(mergedData, d => d.Co2);
-      const co2Scale = d3.scaleLog().domain([Math.max(co2Extent[0] * 0.9, 0.1), co2Extent[1] * 1.1]).range([chartHeight_3, 0])
+      const co2Scale = d3.scaleLinear().domain([Math.max(co2Extent[0] * 0.9, 0.1), co2Extent[1] * 1.1]).range([chartHeight_3, 0])
 
-      let leftAxis_3 = d3.axisLeft(co2Scale)
+      // divide by million and add M next to the number
+      let leftAxis_3 = d3.axisLeft(co2Scale).tickFormat(d3.format(".2s"))
 
       let leftGridlines_3 = d3.axisLeft(co2Scale)
         .tickSize(-chartWidth_3)
