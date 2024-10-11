@@ -45,178 +45,178 @@
       let chartArea_1 = svg_1.append('g')
         .attr('transform', `translate(${margins_1.left},${margins_1.top})`);
 
-      // Temperature Chart 2 (With bars)
-      let svg_2 = d3.select('svg#tempChart2');
-      let width_2 = svg_2.attr('width');
-      let height_2 = svg_2.attr('height');
-      let margins_2 = { top: 20, right: 20, bottom: 60, left: 60 };
-      const chartWidth_2 = width_2 - margins_2.left - margins_2.right;
-      const chartHeight_2 = height_2 - margins_2.top - margins_2.bottom;
-      let chartArea_2 = svg_2.append('g')
-        .attr('transform', `translate(${margins_2.left},${margins_2.top})`);
+    // Temperature Chart 2 (With bars)
+    let svg_2 = d3.select('svg#tempChart2');
+    let width_2 = svg_2.attr('width');
+    let height_2 = svg_2.attr('height');
+    let margins_2 = { top: 20, right: 20, bottom: 60, left: 60 };
+    const chartWidth_2 = width_2 - margins_2.left - margins_2.right;
+    const chartHeight_2 = height_2 - margins_2.top - margins_2.bottom;
+    let chartArea_2 = svg_2.append('g')
+      .attr('transform', `translate(${margins_2.left},${margins_2.top})`);
 
-      d3.csv('GLB.Ts+dSST.csv')
-        .then((data) => {
+    d3.csv('GLB.Ts+dSST.csv')
+      .then((data) => {
 
-          /*
-          ------------------------------
-          Temperature Chart 1
-          ------------------------------
-          */
+        /*
+        ------------------------------
+        Temperature Chart 1
+        ------------------------------
+        */
 
-          // Months list (will simplify our life later)
-          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        // Months list (will simplify our life later)
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-          // Function to check if any value in the row is '***' (indicating missing data)
-          function isValidRow(row) {
-            return !months.some(month => row[month] === '***');
-          }
+        // Function to check if any value in the row is '***' (indicating missing data)
+        function isValidRow(row) {
+          return !months.some(month => row[month] === '***');
+        }
 
-          // Filter data to remove rows with missing data
-          let filteredData = data
-            .filter(isValidRow)  // Remove rows with '***'
-            .map(d => ({
-              year: +d.Year,
-              temperatures: months.map(month => parseFloat(d[month]))  // Array of temperatures for each row
-            }));
-          
-          console.log("Data: ", filteredData);
+        // Filter data to remove rows with missing data
+        let filteredData = data
+          .filter(isValidRow)  // Remove rows with '***'
+          .map(d => ({
+            year: +d.Year,
+            temperatures: months.map(month => parseFloat(d[month]))  // Array of temperatures for each row
+          }));
 
-          // Grab max and min temperatures for scales
-          const minTemp = d3.min(filteredData, d => d3.min(d.temperatures));
-          const maxTemp = d3.max(filteredData, d => d3.max(d.temperatures));
-          console.log("Min temp: ", minTemp);
-          console.log("Max temp: ", maxTemp);
+        console.log("Data: ", filteredData);
 
-          // Grab the year extent
-          const yearExtent = d3.extent(data, d => d.Year);
+        // Grab max and min temperatures for scales
+        const minTemp = d3.min(filteredData, d => d3.min(d.temperatures));
+        const maxTemp = d3.max(filteredData, d => d3.max(d.temperatures));
+        console.log("Min temp: ", minTemp);
+        console.log("Max temp: ", maxTemp);
 
-          // Set up scales
-          let colorScale_1 = d3.scaleSequential(d3.interpolateViridis).domain([minTemp, maxTemp])
+        // Grab the year extent
+        const yearExtent = d3.extent(data, d => d.Year);
 
-          let xScale_1 = d3.scaleLinear()
-            .domain(yearExtent)
-            .range([0, chartWidth_1]);
+        // Set up scales
+        let colorScale_1 = d3.scaleSequential(d3.interpolateViridis).domain([minTemp, maxTemp])
 
-          let yScale_1 = d3.scalePoint()
-            .domain(months)
-            .range([chartHeight_1, 0])  // Spread the months evenly
-            .padding(0.5);
+        let xScale_1 = d3.scaleLinear()
+          .domain(yearExtent)
+          .range([0, chartWidth_1]);
 
-          // Create X axis
-          let bottomAxis_1 = d3.axisBottom(xScale_1)
-            .tickFormat(d => d.toString()) // Format to show as integer
-          svg_1.append('g')
-            .attr('transform', `translate(${margins_1.left},${chartHeight_1 + margins_1.top + 10})`)
-            .call(bottomAxis_1);
+        let yScale_1 = d3.scalePoint()
+          .domain(months)
+          .range([chartHeight_1, 0])  // Spread the months evenly
+          .padding(0.5);
 
-          // Create Y axis
-          let leftAxis_1 = d3.axisLeft(yScale_1);
-          svg_1.append('g')
-            .attr('class', 'y axis')
-            .attr('transform', `translate(${margins_1.left - 10}, ${margins_1.top})`)
-            .call(leftAxis_1);
+        // Create X axis
+        let bottomAxis_1 = d3.axisBottom(xScale_1)
+          .tickFormat(d => d.toString()) // Format to show as integer
+        svg_1.append('g')
+          .attr('transform', `translate(${margins_1.left},${chartHeight_1 + margins_1.top + 10})`)
+          .call(bottomAxis_1);
 
-          // Create Gridlines
-          let leftGridlines_1 = d3.axisLeft(yScale_1)
-            .tickSize(-chartWidth_1 - 10)
-            .tickFormat('');
-          svg_1.append('g')
-            .attr('class', 'y gridlines')
-            .attr('transform', `translate(${margins_1.left - 10}, ${margins_1.top})`)
-            .call(leftGridlines_1);
+        // Create Y axis
+        let leftAxis_1 = d3.axisLeft(yScale_1);
+        svg_1.append('g')
+          .attr('class', 'y axis')
+          .attr('transform', `translate(${margins_1.left - 10}, ${margins_1.top})`)
+          .call(leftAxis_1);
 
-          let bottomGridlines_1 = d3.axisBottom(xScale_1)
-            .tickSize(-chartHeight_1 - 10)
-            .tickFormat('');
-          svg_1.append('g')
-            .attr('class', 'x gridlines')
-            .attr('transform', `translate(${margins_1.left}, ${chartHeight_1 + margins_1.top + 10})`)
-            .call(bottomGridlines_1);
+        // Create Gridlines
+        let leftGridlines_1 = d3.axisLeft(yScale_1)
+          .tickSize(-chartWidth_1 - 10)
+          .tickFormat('');
+        svg_1.append('g')
+          .attr('class', 'y gridlines')
+          .attr('transform', `translate(${margins_1.left - 10}, ${margins_1.top})`)
+          .call(leftGridlines_1);
 
-          // Adding circles
-          chartArea_1.selectAll('circle')
-            .data(filteredData.flatMap(d => d.temperatures.map((temp, i) => ({
-              year: d.year,
-              month: months[i],
-              temp: +temp
-            }))))
-            .enter()
-            .append('circle')
-            .attr('cx', d => xScale_1(d.year))
-            .attr('cy', d => yScale_1(d.month))
-            .attr('r', 5)
-            .attr('fill', d => colorScale_1(d.temp));
+        let bottomGridlines_1 = d3.axisBottom(xScale_1)
+          .tickSize(-chartHeight_1 - 10)
+          .tickFormat('');
+        svg_1.append('g')
+          .attr('class', 'x gridlines')
+          .attr('transform', `translate(${margins_1.left}, ${chartHeight_1 + margins_1.top + 10})`)
+          .call(bottomGridlines_1);
+
+        // Adding circles
+        chartArea_1.selectAll('circle')
+          .data(filteredData.flatMap(d => d.temperatures.map((temp, i) => ({
+            year: d.year,
+            month: months[i],
+            temp: +temp
+          }))))
+          .enter()
+          .append('circle')
+          .attr('cx', d => xScale_1(d.year))
+          .attr('cy', d => yScale_1(d.month))
+          .attr('r', 5)
+          .attr('fill', d => colorScale_1(d.temp));
 
           chartArea_1.raise();  // Raise the chart area to the top
           // Add color legend
           drawLegend("#colorLegend1", colorScale_1);
 
-          // Add axis labels
-          svg_1.append('text')
-            .attr('class', 'x label')
-            .attr('text-anchor', 'middle')
-            .attr('x', chartWidth_1 / 2 + margins_1.left)
-            .attr('y', chartHeight_1 + margins_1.top + 50)
-            .text('Year');
-            
-          svg_1.append('text')
-            .attr('class', 'y label')
-            .attr('text-anchor', 'middle')
-            .attr('transform', `rotate(-90)`)
-            .attr('x', -chartHeight_1 / 2 - margins_1.top)
-            .attr('y', margins_1.left - 50)
-            .text('Month');
+        // Add axis labels
+        svg_1.append('text')
+          .attr('class', 'x label')
+          .attr('text-anchor', 'middle')
+          .attr('x', chartWidth_1 / 2 + margins_1.left)
+          .attr('y', chartHeight_1 + margins_1.top + 50)
+          .text('Year');
+
+        svg_1.append('text')
+          .attr('class', 'y label')
+          .attr('text-anchor', 'middle')
+          .attr('transform', `rotate(-90)`)
+          .attr('x', -chartHeight_1 / 2 - margins_1.top)
+          .attr('y', margins_1.left - 50)
+          .text('Month');
 
 
-          /*
-          ------------------------------
-          Temperature Chart 2
-          ------------------------------
-          */
+        /*
+        ------------------------------
+        Temperature Chart 2
+        ------------------------------
+        */
 
-          // Calculate average temperature for each year
-          let yearAvgTemp = filteredData.map(d => ({
-            year: d.year,
-            avgTemp: d.temperatures.reduce((sum, temp) => sum + temp, 0) / 12
-          }));
+        // Calculate average temperature for each year
+        let yearAvgTemp = filteredData.map(d => ({
+          year: d.year,
+          avgTemp: d.temperatures.reduce((sum, temp) => sum + temp, 0) / 12
+        }));
 
-          // Only grab years that are multiples of 5 (for better visibility of the chart)
-          yearAvgTemp = yearAvgTemp.filter(d => d.year % 5 === 0);
+        // Only grab years that are multiples of 5 (for better visibility of the chart)
+        yearAvgTemp = yearAvgTemp.filter(d => d.year % 5 === 0);
 
           console.log("5-year average temperature: ", yearAvgTemp);
 
-          // Set up the scales
-          const xScale_2 = d3.scaleLinear()
+        // Set up the scales
+        const xScale_2 = d3.scaleLinear()
           .domain([d3.min(yearAvgTemp, d => d.year), d3.max(yearAvgTemp, d => d.year)])
           .range([0, chartWidth_2]);
 
-          const yScale_2 = d3.scaleLinear()
+        const yScale_2 = d3.scaleLinear()
           .domain([d3.min(yearAvgTemp, d => d.avgTemp), d3.max(yearAvgTemp, d => d.avgTemp)])
-          .range([chartHeight_2-10, 0]);
+          .range([chartHeight_2 - 10, 0]);
 
-          // Create X axis
-          const bottomAxis_2 = d3.axisBottom(xScale_2).tickFormat(d => d.toString());
-          chartArea_2.append('g')
+        // Create X axis
+        const bottomAxis_2 = d3.axisBottom(xScale_2).tickFormat(d => d.toString());
+        chartArea_2.append('g')
           .attr('transform', `translate(0, ${chartHeight_2})`)
           .call(bottomAxis_2);
 
-          // Add label for X axis
-          chartArea_2.append('text')
+        // Add label for X axis
+        chartArea_2.append('text')
           .attr('class', 'x label')
           .attr('text-anchor', 'middle')
           .attr('x', chartWidth_2 / 2)
           .attr('y', chartHeight_2 + 50)
           .text('Year')
 
-          // Create Y axis
-          const leftAxis_2 = d3.axisLeft(yScale_2);
-          chartArea_2.append('g')
-            .attr('transform', `translate(-10, 0)`) // Shift left by 10 pixels
-            .call(leftAxis_2);
-          
-          // Add label for Y axis
-          chartArea_2.append('text')
+        // Create Y axis
+        const leftAxis_2 = d3.axisLeft(yScale_2);
+        chartArea_2.append('g')
+          .attr('transform', `translate(-10, 0)`) // Shift left by 10 pixels
+          .call(leftAxis_2);
+
+        // Add label for Y axis
+        chartArea_2.append('text')
           .attr('class', 'y label')
           .attr('text-anchor', 'middle')
           .attr('transform', `rotate(-90)`)
@@ -224,21 +224,11 @@
           .attr('y', -50)
           .text('Temperature change from baseline (°C)')
 
+        // set width for bars
+        const barWidth = 10;
 
-          // Create horizontal line at y=0
-          chartArea_2.append('line')
-          .attr('x1', -10)
-          .attr('x2', chartWidth_2+10)
-          .attr('y1', yScale_2(0))
-          .attr('y2', yScale_2(0))
-          .style('stroke', 'black')
-          .style('stroke-width', 1);
-
-          // set width for bars
-          const barWidth = 10;
-
-          // Draw the bars using lines
-          chartArea_2.selectAll('.bar')
+        // Draw the bars using lines
+        chartArea_2.selectAll('.bar')
           .data(yearAvgTemp)
           .enter()
           .append('line')
@@ -249,13 +239,25 @@
           .attr('y2', d => yScale_2(d.avgTemp))
           .attr('stroke', d => d.avgTemp > 0 ? d3.interpolateViridis(1) : d3.interpolateViridis(0))
           .attr('stroke-width', barWidth);
+        
+        // Create horizontal line at y=0
+        chartArea_2.append('line')
+          .attr('x1', -10)
+          .attr('x2', chartWidth_2 + 10)
+          .attr('y1', yScale_2(0))
+          .attr('y2', yScale_2(0))
+          .style('stroke', 'black')
+          .style('stroke-width', 1);
 
-        });
-    </script>
+      });
+  </script>
   </p>
   <p>
-  <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">CO2 Emissions in the USA - Paired with Temperature Insights</h3>
-  <p style="font-family: Verdana; font-size: 13">This graph shows the progression of Co2 emissions between the years 1970 and 2020 in the Unites States. The color of the circles represents the change in temperature for that year. The color legend below the graph shows the range of temperature changes.</p>
+  <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">CO2 Emissions in the
+    USA - Paired with Temperature Insights</h3>
+  <p style="font-family: Verdana">Chart 3: This graph shows the progression of CO2 emissions between the years
+    1970 and 2020 in the Unites States. The color of the circles represents the change in temperature in degrees celcius
+    for that year. The color legend below the graph shows the range of temperature changes.</p>
   </p>
   <div style="display: flex; flex-direction: column; align-items: center;">
     <svg id="scatterplot" height="600" width="1000" style="margin-top:30px">
@@ -384,7 +386,7 @@
 
       //creating the color scale for the temperature changes
       const tempExtent_3 = d3.extent(mergedData, d => d.TempChange);
-      
+
       const colorScale_3 = d3.scaleSequential(d3.interpolateViridis)
         .domain([d3.min(tempExtent_3), d3.max(tempExtent_3)]);
 
@@ -411,67 +413,69 @@
     //
     // Usage example: drawLegend("#legendID", grossIncomeColorScale)
     function drawLegend(legendSelector, legendColorScale) {
-      
+
       // This code should adapt to a variety of different kinds of color scales
       //  Credit Prof. Rz if you are basing a legend on this structure, and note PERFORMANCE CONSIDERATIONS
-      
+
       // Shrink legend bar by 5 px inwards from sides of SVG
-      const offsets = { width: 10,
-                        top: 2,
-                        bottom: 24 }; 
+      const offsets = {
+        width: 10,
+        top: 2,
+        bottom: 24
+      };
       // Number of integer 'pixel steps' to draw when showing continuous scales
       //    Warning, not using a canvas element so lots of rect tags will be created for low stepSize, causing issues with performance -- keep this large
-      const stepSize = 4; 
+      const stepSize = 4;
       // Extend the minmax by 0% in either direction to expose more features by default
       const minMaxExtendPercent = 0;
-      
+
       const legend = d3.select(legendSelector);
       const legendHeight = legend.attr("height");
       const legendBarWidth = legend.attr("width") - (offsets.width * 2);
-      const legendMinMax = d3.extent(legendColorScale.domain()); 
-                  // recover the min and max values from most kinds of numeric scales
+      const legendMinMax = d3.extent(legendColorScale.domain());
+      // recover the min and max values from most kinds of numeric scales
       const minMaxExtension = (legendMinMax[1] - legendMinMax[0]) * minMaxExtendPercent;
-      const barHeight = legendHeight - offsets.top - offsets.bottom;     
-      
+      const barHeight = legendHeight - offsets.top - offsets.bottom;
+
       // In this case the "data" are pixels, and we get numbers to use in colorScale
       // Use this to make axis labels
-      let barScale = d3.scaleLinear().domain([legendMinMax[0]-minMaxExtension,
-                                                legendMinMax[1]+minMaxExtension])
-                                     .range([0,legendBarWidth]);
+      let barScale = d3.scaleLinear().domain([legendMinMax[0] - minMaxExtension,
+      legendMinMax[1] + minMaxExtension])
+        .range([0, legendBarWidth]);
       let barAxis = d3.axisBottom(barScale);
-      
+
       // Place for bar slices to live
       let bar = legend.append("g")
-                      .attr("class", "legend colorbar")
-                      .attr("transform", `translate(${offsets.width},${offsets.top})`)
-      
+        .attr("class", "legend colorbar")
+        .attr("transform", `translate(${offsets.width},${offsets.top})`)
+
       // ****** SWITCHES FOR DIFFERENT SCALE TYPES ******
-      
+
       // Check if we're using a binning scale - if so, we make blocks of color
       if (legendColorScale.hasOwnProperty('thresholds') || legendColorScale.hasOwnProperty('quantiles')) {
         // Get the thresholds
         let thresholds = [];
         if (legendColorScale.hasOwnProperty('thresholds')) { thresholds = legendColorScale.thresholds() }
         else { thresholds = legendColorScale.quantiles() }
-        
+
         const barThresholds = [legendMinMax[0], ...thresholds, legendMinMax[1]];
-        
+
         // Use the quantile breakpoints plus the min and max of the scale as tick values
         barAxis.tickValues(barThresholds);
-        
+
         // Draw rectangles between the threshold segments
-        for (let i=0; i<barThresholds.length-1; i++) {
+        for (let i = 0; i < barThresholds.length - 1; i++) {
           let dataStart = barThresholds[i];
-          let dataEnd = barThresholds[i+1];
+          let dataEnd = barThresholds[i + 1];
           let pixelStart = barAxis.scale()(dataStart);
           let pixelEnd = barAxis.scale()(dataEnd);
-          
+
           bar.append("rect")
             .attr("x", pixelStart)
             .attr("y", 0)
-            .attr("width", pixelEnd - pixelStart )
+            .attr("width", pixelEnd - pixelStart)
             .attr("height", barHeight)
-            .style("fill", legendColorScale( (dataStart + dataEnd) / 2.0 ) ); 
+            .style("fill", legendColorScale((dataStart + dataEnd) / 2.0));
         }
       }
       // Else if we have a continuous / roundable scale
@@ -487,71 +491,72 @@
         //      because patches will be indistinguishable from actual scale bottom)
         // It's likely that scale clamping will actually do this for us elegantly
         // ...but better to be safer and patch the regions anyways
-        
-        for (let i=0; i<legendBarWidth; i=i+stepSize) {
-          
-          let center = i+(stepSize/2);
-          let dataCenter = barAxis.scale().invert( center );
-          
+
+        for (let i = 0; i < legendBarWidth; i = i + stepSize) {
+
+          let center = i + (stepSize / 2);
+          let dataCenter = barAxis.scale().invert(center);
+
           // below normal scale bounds
-          if ( dataCenter < legendMinMax[0] ) { 
+          if (dataCenter < legendMinMax[0]) {
             bar.append("rect")
               .attr("x", i)
               .attr("y", 0)
               .attr("width", stepSize)
-              .attr("height",barHeight)
-              .style("fill", legendColorScale( legendMinMax[0] ) ); 
+              .attr("height", barHeight)
+              .style("fill", legendColorScale(legendMinMax[0]));
           }
           // within normal scale bounds
-          else if ( dataCenter < legendMinMax[1] ) {
+          else if (dataCenter < legendMinMax[1]) {
             bar.append("rect")
-                .attr("x", i)
-                .attr("y", 0)
-                .attr("width", stepSize)
-                .attr("height",barHeight)
-                .style("fill", legendColorScale( dataCenter ) ); 
+              .attr("x", i)
+              .attr("y", 0)
+              .attr("width", stepSize)
+              .attr("height", barHeight)
+              .style("fill", legendColorScale(dataCenter));
           }
           // above normal scale bounds
           else {
             bar.append("rect")
-                .attr("x", i)
-                .attr("y", 0)
-                .attr("width", stepSize)
-                .attr("height",barHeight)
-                .style("fill", legendColorScale( legendMinMax[1] ) ); 
+              .attr("x", i)
+              .attr("y", 0)
+              .attr("width", stepSize)
+              .attr("height", barHeight)
+              .style("fill", legendColorScale(legendMinMax[1]));
           }
-          
+
         }
       }
       // Otherwise we have a nominal scale
       else {
         let nomVals = legendColorScale.domain().sort();
-        
+
         // Use a scaleBand to make blocks of color and simple labels
         let barScale = d3.scaleBand().domain(nomVals)
-                                      .range([0,legendBarWidth])
-                                      .padding(0.05);
+          .range([0, legendBarWidth])
+          .padding(0.05);
         barAxis.scale(barScale);
-        
+
         // Draw rectangles for each nominal entry
-        nomVals.forEach( d => {
+        nomVals.forEach(d => {
           bar.append("rect")
-            .attr("x", barScale(d) )
+            .attr("x", barScale(d))
             .attr("y", 0)
-            .attr("width", barScale.bandwidth() )
+            .attr("width", barScale.bandwidth())
             .attr("height", barHeight)
-            .style("fill", legendColorScale( d ) );
+            .style("fill", legendColorScale(d));
         });
       }
       // DONE w/SWITCH
-      
+
       // Finally, draw legend labels
       legend.append("g")
-            .attr("class", "legend axis")
-            .attr("transform",`translate(${offsets.width},${offsets.top+barHeight+5})`)
-            .call(barAxis);
-      
+        .attr("class", "legend axis")
+        .attr("transform", `translate(${offsets.width},${offsets.top + barHeight + 5})`)
+        .call(barAxis);
+
     }
-    </script>
+  </script>
 </body>
+
 </html>
