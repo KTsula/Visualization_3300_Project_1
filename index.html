@@ -18,19 +18,22 @@
 </head>
 
 <body>
-  <h1 style="text-align: center">Warming Trend: A Visual Analysis of Temperature Change and CO2 Emissions</h1>
+  <h1 style="text-align: center">Warming Trend: A Visual Analysis of Temperature Deviation and CO2 Emissions</h1>
   <p>
     <div style="display: flex; align-items: flex-start; margin: 20px;">
-      <div style="flex: 1; margin-right: 20px;">
-        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">Global Surface Temperature monthly change, 1880-2021</h3>
-        <p style="font-family: Verdana">Chart 1: Monthly Temperature Change (1880-2021): This chart displays a heatmap where each circle represents the temperature deviation from baseline for a specific month and year. The color gradient visually indicates the temperature change, with cooler temperatures shown in purple and warmer temperatures in yellow.</p>
-        <svg id="tempChart1" width="900" height="500"></svg>
-        <svg id="colorLegend1" width="400" height="50" style="background: #fff; margin-top:10px; margin-left:50px;"></svg>
+      <div style="flex: 1;">
+        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">Global Surface Temperature monthly deviation, 1880-2021</h3>
+        <p style="font-family: Verdana">Chart 1: Monthly Temperature Deviation (1880-2021): This chart displays a heatmap where each circle represents the temperature deviation from baseline for a specific month and year. The color gradient visually indicates the temperature deviation, with cooler temperatures shown in purple and warmer temperatures in yellow.</p>
+        <svg id="tempChart1" width="850" height="500"></svg>
+        <div style="text-align: center; margin-top: 10px;">
+          <p style="font-family: Verdana; font-size: 12px;">Temperature Deviations (°C) from the 1951-1980 Mean</p>
+          <svg id="colorLegend1" width="400" height="50" style="background: #fff;"></svg>
+        </div>
       </div>
       <div style="flex: 1; align-items: center;">
-        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">5-Year average change compared to baseline</h3>
-        <p style="font-family: Verdana">Chart 2: 5-Year Average Temperature Change: This bar chart shows the average temperature change compared to the baseline for every other 5 years.<br><br></p>
-        <svg id="tempChart2" width="500" height="500"></svg>
+        <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">5-Year average deviation compared to baseline</h3>
+        <p style="font-family: Verdana">Chart 2: Every 5-Year Temperature Deviation: This bar chart shows the temperature deviation of averaged-year (for years divisible by 5) compared to the baseline.<br><br></p>
+        <svg id="tempChart2" width="600" height="500"></svg>
       </div>
     </div>
     <p style="font-family: Verdana; text-align: center; background-color: rgb(242, 233, 233); padding: 10px">By analyzing both charts, we observed a clear warming trend in global surface temperature over the past decades.</p>
@@ -49,7 +52,7 @@
     let svg_2 = d3.select('svg#tempChart2');
     let width_2 = svg_2.attr('width');
     let height_2 = svg_2.attr('height');
-    let margins_2 = { top: 20, right: 20, bottom: 60, left: 60 };
+    let margins_2 = { top: 20, right: 20, bottom: 60, left: 70 };
     const chartWidth_2 = width_2 - margins_2.left - margins_2.right;
     const chartHeight_2 = height_2 - margins_2.top - margins_2.bottom;
     let chartArea_2 = svg_2.append('g')
@@ -222,7 +225,7 @@
           .attr('transform', `rotate(-90)`)
           .attr('x', -chartHeight_2 / 2)
           .attr('y', -50)
-          .text('Temperature change from baseline (°C)')
+          .text('Temperature deviation from baseline (°C)')
 
         // set width for bars
         const barWidth = 10;
@@ -256,13 +259,16 @@
   <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">CO2 Emissions in the
     USA - Paired with Temperature Insights</h3>
   <p style="font-family: Verdana">Chart 3: This graph shows the progression of CO2 emissions between the years
-    1970 and 2020 in the Unites States. The color of the circles represents the change in temperature in degrees celcius
-    for that year. The color legend below the graph shows the range of temperature changes.</p>
+    1970 and 2020 in the Unites States. The color of the circles represents the deviation in temperature in degrees celcius
+    for that year. The color legend below the graph shows the range of temperature deviations.</p>
   </p>
   <div style="display: flex; flex-direction: column; align-items: center;">
     <svg id="scatterplot" height="600" width="1000" style="margin-top:30px">
     </svg>
-    <svg id="colorLegend2" width="400" height="50" style="background: #fff; margin-top:10px; margin-left:50px;"></svg>
+    <div style="text-align: center; margin-top: 10px;">
+      <p style="font-family: Verdana; font-size: 12px;">Temperature Deviations (°C) from the 1951-1980 Mean</p>
+      <svg id="colorLegend2" width="400" height="50" style="background: #fff;"></svg>
+    </div>
   </div>
 
   <script>
@@ -293,12 +299,12 @@
             newTempData.push({
               Country: country,
               Year: year,
-              "Temp Change": row[year]
+              "Temp Deviation": row[year]
             });
           }
         }
       });
-      //Merge data to have country, year, co2 and change in temperature
+      //Merge data to have country, year, co2 and deviation in temperature
       const mergedData = co2data.map(co2Row => {
         const tempRow = newTempData.find(temp => temp.Country.toLowerCase().includes(co2Row.country_name.toLowerCase()) && temp.Year === co2Row.year);
 
@@ -306,9 +312,9 @@
           Country: co2Row.country_name,
           Year: co2Row.year,
           Co2: co2Row.value,
-          TempChange: tempRow ? tempRow["Temp Change"] : null
+          TempDeviation: tempRow ? tempRow["Temp Deviation"] : null
         };
-      }).filter(d => d.TempChange !== null);
+      }).filter(d => d.TempDeviation !== null);
 
       console.log(mergedData);
 
@@ -385,19 +391,19 @@
         .style("font-size", "12")
 
       //creating the color scale for the temperature changes
-      const tempExtent_3 = d3.extent(mergedData, d => d.TempChange);
+      const tempExtent_3 = d3.extent(mergedData, d => d.TempDeviation);
 
       const colorScale_3 = d3.scaleSequential(d3.interpolateViridis)
         .domain([d3.min(tempExtent_3), d3.max(tempExtent_3)]);
 
-      //plotting the circles correlated with their temperature change                   
+      //plotting the circles correlated with their temperature deviation                   
       svg_3.selectAll('circle')
         .data(mergedData)
         .join('circle')
         .attr('cx', d => margins_3.left + yearScale(d.Year))
         .attr('cy', d => margins_3.top + co2Scale(d.Co2))
         .attr('r', 7)
-        .style('fill', d => colorScale_3(d.TempChange));
+        .style('fill', d => colorScale_3(d.TempDeviation));
 
       //legend for temperature
       drawLegend("#colorLegend2", colorScale_3);
