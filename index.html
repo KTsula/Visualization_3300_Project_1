@@ -243,7 +243,7 @@
     increases as well.
   </p>
   <div style="display: flex; flex-direction: column; align-items: center;">
-    <svg id="scatterplot" height="700" width="1300" style="margin-top:30px">
+    <svg id="scatterplot" height="600" width="1000" style="margin-top:30px">
     </svg>
     <svg id="colorLegend2" width="400" height="50" style="background: #fff; margin-top:10px; margin-left:50px;"></svg>
   </div>
@@ -326,8 +326,7 @@
         .style("font-family", "Verdana")
         .style("font-size", "12")
 
-        
-        
+
 
       // Dynamically compute the extent of years in your data
       const yearExtent_3 = d3.extent(mergedData, d => d.Year);
@@ -369,10 +368,7 @@
 
       //creating the color scale for the temperature changes
       const tempExtent_3 = d3.extent(mergedData, d => d.TempChange);
-      const tempScale = d3.scaleLinear()
-                          .domain(tempExtent_3)
-                          .range([chartHeight_3, 0]);
-
+      
       const colorScale_3 = d3.scaleSequential(d3.interpolateViridis)
         .domain([d3.min(tempExtent_3), d3.max(tempExtent_3)]);
 
