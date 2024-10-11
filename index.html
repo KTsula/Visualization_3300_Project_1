@@ -23,17 +23,17 @@
     <div style="display: flex; align-items: flex-start; margin: 20px;">
       <div style="flex: 1; margin-right: 20px;">
         <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">Global Surface Temperature monthly change, 1880-2021</h3>
-        <p>Chart 1: Monthly Temperature Change (1880-2021): This chart displays a heatmap where each circle represents the temperature deviation from baseline for a specific month and year. The color gradient visually indicates the temperature change, with cooler temperatures shown in purple and warmer temperatures in yellow.</p>
+        <p style="font-family: Verdana">Chart 1: Monthly Temperature Change (1880-2021): This chart displays a heatmap where each circle represents the temperature deviation from baseline for a specific month and year. The color gradient visually indicates the temperature change, with cooler temperatures shown in purple and warmer temperatures in yellow.</p>
         <svg id="tempChart1" width="900" height="500"></svg>
         <svg id="colorLegend1" width="400" height="50" style="background: #fff; margin-top:10px; margin-left:50px;"></svg>
       </div>
       <div style="flex: 1; align-items: center;">
         <h3 style="font-family: Verdana; text-align: center; background-color: lightgray; padding: 10px">5-Year average change compared to baseline</h3>
-        <p>Chart 2: 5-Year Average Temperature Change: This bar chart shows the average temperature change compared to the baseline for every other 5 years.<br><br></p>
+        <p style="font-family: Verdana">Chart 2: 5-Year Average Temperature Change: This bar chart shows the average temperature change compared to the baseline for every other 5 years.<br><br></p>
         <svg id="tempChart2" width="500" height="500"></svg>
       </div>
     </div>
-    <p style="text-align: center; background-color: rgb(242, 233, 233); padding: 10px">By analyzing both charts, we observed a clear warming trend in global surface temperature over the past decades.</p>
+    <p style="font-family: Verdana; text-align: center; background-color: rgb(242, 233, 233); padding: 10px">By analyzing both charts, we observed a clear warming trend in global surface temperature over the past decades.</p>
     <script id="tempChart1_script">
       // Temperature Chart 1 (With gradually changing colored circles)
       const svg_1 = d3.select('svg#tempChart1');
